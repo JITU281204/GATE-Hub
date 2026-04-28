@@ -438,20 +438,20 @@ export default function LoginPage() {
               <div className="input-grid">
                 <div className="input-group">
                   <label>Full Name</label>
-                  <input type="text" placeholder="John Doe" value={userData.name} onChange={e => setUserData({...userData, name: e.target.value})} required />
+                  <input type="text" value={userData.name} onChange={e => setUserData({...userData, name: e.target.value})} required />
                 </div>
                 <div className="input-group">
                   <label>Mobile Number</label>
-                  <input type="tel" placeholder="10 Digit Number" maxLength={10} value={userData.mobile} onChange={e => setUserData({...userData, mobile: e.target.value.replace(/\D/g,'')})} required />
+                  <input type="tel" maxLength={10} value={userData.mobile} onChange={e => setUserData({...userData, mobile: e.target.value.replace(/\D/g,'')})} required />
                 </div>
               </div>
               <div className="input-group">
                 <label>Email ID (Gmail Only)</label>
-                <input type="email" placeholder="example@gmail.com" value={userData.email} onChange={e => setUserData({...userData, email: e.target.value})} required />
+                <input type="email" value={userData.email} onChange={e => setUserData({...userData, email: e.target.value})} required />
               </div>
               <div className="input-group">
                 <label>Set Password</label>
-                <input type="password" placeholder="Min 6 characters" value={userData.password} onChange={e => setUserData({...userData, password: e.target.value})} required />
+                <input type="password" value={userData.password} onChange={e => setUserData({...userData, password: e.target.value})} required />
               </div>
               <button type="submit" className="submit-btn neon-glow">Complete Registration</button>
               <button type="button" className="text-link" onClick={() => setView('select')}>Back to Selection</button>
@@ -469,11 +469,11 @@ export default function LoginPage() {
             <form onSubmit={handleUserLogin}>
               <div className="input-group">
                 <label>Registered Email</label>
-                <input type="email" placeholder="Enter your email" value={loginData.email} onChange={e => setLoginData({...loginData, email: e.target.value})} required />
+                <input type="email" value={loginData.email} onChange={e => setLoginData({...loginData, email: e.target.value})} required />
               </div>
               <div className="input-group">
                 <label>Password</label>
-                <input type="password" placeholder="Enter password" value={loginData.password} onChange={e => setLoginData({...loginData, password: e.target.value})} required />
+                <input type="password" value={loginData.password} onChange={e => setLoginData({...loginData, password: e.target.value})} required />
               </div>
               <button type="submit" className="submit-btn user-btn">Access Dashboard</button>
               <div style={{textAlign: 'center', marginTop: '15px'}}>

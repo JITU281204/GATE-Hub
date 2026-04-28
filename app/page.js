@@ -353,6 +353,8 @@ export default function Dashboard() {
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [testHistory, setTestHistory] = useState([]);
   const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -365,14 +367,38 @@ export default function Dashboard() {
       setCurrentUser(user);
       setIsAuth(true);
       
-      // Load individual history from Global DB
+      // Load individual history and leaderboard from Global DB
       getAllUsers().then(allUsers => {
+        // Individual history
         const dbUser = allUsers.find(u => u.email === user.email);
         if (dbUser && dbUser.history) {
           setTestHistory(dbUser.history);
         } else {
           setTestHistory([]);
         }
+
+        // Leaderboard Calculation
+        const leaderData = allUsers.map(u => {
+           const history = u.adminMasterHistory || u.history || [];
+           const totalScore = history.reduce((sum, item) => sum + parseFloat(item.score || 0), 0);
+           const totalTimeSec = history.reduce((sum, item) => {
+              const qCount = item.detailedHistory?.length || 0;
+              const avg = parseFloat(item.avgTime || 0);
+              return sum + (avg * qCount);
+           }, 0);
+           
+           return {
+              id: u.id,
+              name: u.name,
+              testCount: history.length,
+              totalScore: totalScore.toFixed(1),
+              totalTime: Math.floor(totalTimeSec / 60) // in minutes
+           };
+        });
+
+        // Sort by total score descending
+        leaderData.sort((a, b) => b.totalScore - a.totalScore);
+        setLeaderboard(leaderData);
       });
     }
   }, [router]);
@@ -433,6 +459,25 @@ export default function Dashboard() {
           }}>Hub</span>
         </div>
         <div className="header-right" style={{display: 'flex', alignItems: 'center', gap: '20px'}}>
+          <button 
+            className="leaderboard-trigger" 
+            onClick={() => setShowLeaderboard(true)}
+            style={{
+              background: 'linear-gradient(135deg, #FFD700, #FFA500)',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: '12px',
+              fontWeight: 800,
+              color: '#000',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 15px rgba(255, 165, 0, 0.3)'
+            }}
+          >
+            🏆 Leaderboard
+          </button>
           <button 
             className="logout-btn" 
             onClick={() => {
@@ -500,7 +545,55 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ACTIVITY MODAL */}
+      {/* LEADERBOARD MODAL */}
+      {showLeaderboard && (
+        <div className="modal-overlay" onClick={() => setShowLeaderboard(false)}>
+          <div className="details-modal leaderboard-modal animate-in" style={{maxWidth: '900px', width: '95%', background: '#0f172a', border: '1px solid rgba(255, 215, 0, 0.3)'}} onClick={e => e.stopPropagation()}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px'}}>
+               <h2 style={{color: '#FFD700', fontFamily: 'Outfit', margin: 0, fontSize: '2rem'}}>🔥 Global Hall of Fame</h2>
+               <button onClick={() => setShowLeaderboard(false)} className="close-x" style={{background: 'rgba(255,255,255,0.1)', color: '#fff'}}>×</button>
+            </div>
+
+            <div className="leaderboard-table-container">
+               <div className="leader-header-row">
+                  <div>RANK</div>
+                  <div>STUDENT</div>
+                  <div>TESTS</div>
+                  <div>TOTAL SCORE</div>
+                  <div>TIME (MIN)</div>
+               </div>
+
+               <div className="leader-body">
+                  {leaderboard.length === 0 ? (
+                    <div style={{padding: '40px', textAlign: 'center', color: '#94a3b8'}}>No warriors on the battlefield yet...</div>
+                  ) : (
+                    leaderboard.map((player, idx) => (
+                      <div key={player.id} className={`leader-row ${player.name === userName ? 'is-me' : ''}`}>
+                         <div className="rank-col">
+                            {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
+                         </div>
+                         <div className="name-col">
+                            <div className="p-avatar">{player.name[0]}</div>
+                            <div className="p-info">
+                               <div className="p-name">{player.name}</div>
+                               <div className="p-id">UID: {String(player.id).slice(-6)}</div>
+                            </div>
+                         </div>
+                         <div className="val-col">{player.testCount}</div>
+                         <div className="val-col highlight">{player.totalScore}</div>
+                         <div className="val-col">{player.totalTime}</div>
+                      </div>
+                    ))
+                  )}
+               </div>
+            </div>
+
+            <div style={{marginTop: '25px', textAlign: 'center', color: '#64748b', fontSize: '0.85rem'}}>
+               Leaderboard updates in real-time as students complete their tests.
+            </div>
+          </div>
+        </div>
+      )}
       {showActivityModal && (
         <div className="modal-overlay" onClick={() => setShowActivityModal(false)}>
           <div className="details-modal animate-in" style={{maxWidth: '800px', width: '90%', maxHeight: '85vh', overflowY: 'auto'}} onClick={e => e.stopPropagation()}>
