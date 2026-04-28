@@ -32,16 +32,20 @@ export default function LoginPage() {
   ];
 
   useEffect(() => {
-    // Load existing users from Global Sync
+    // Load existing users from Global Sync with safety
     const fetchUsers = async () => {
-      const users = await getAllUsers();
-      setAllUsers(users);
+      try {
+        const users = await getAllUsers();
+        if (users && Array.isArray(users)) {
+          setAllUsers(users);
+        }
+      } catch (err) {
+        console.warn("Global sync paused, using local data.");
+      }
     };
     
     fetchUsers();
-    
-    // Auto-update stats every 10 seconds to feel "real-time"
-    const interval = setInterval(fetchUsers, 10000);
+    const interval = setInterval(fetchUsers, 15000); // Sync every 15s
 
     // Countdown Timer Logic
     const targetDate = new Date('February 7, 2027 00:00:00').getTime();
@@ -251,15 +255,17 @@ export default function LoginPage() {
       adminMasterHistory: []
     };
     
-    // Sync to Global DB
-    saveUser(newUser).then((saved) => {
-      const updatedUsers = [...allUsers, saved];
-      setAllUsers(updatedUsers);
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('currentUser', JSON.stringify(saved));
-      alert('Registration Successful! Redirecting to Dashboard...');
-      router.push('/');
-    });
+    // Save locally first
+    const updatedLocal = [...allUsers, newUser];
+    setAllUsers(updatedLocal);
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('currentUser', JSON.stringify(newUser));
+    
+    // Sync to Global DB in background
+    saveUser(newUser).catch(err => console.error("Sync failed:", err));
+    
+    alert('Registration Successful! Redirecting to Dashboard...');
+    router.push('/');
   };
 
   const handleUserLogin = async (e) => {
