@@ -270,17 +270,32 @@ export default function LoginPage() {
 
   const handleUserLogin = async (e) => {
     e.preventDefault();
-    const user = allUsers.find(u => u.email === loginData.email && u.password === loginData.password);
+    setIsRefreshing(true);
     
-    if (user) {
-      // Update last seen in Global DB
-      await updateLastSeen(user.email);
+    try {
+      // Fetch fresh users from DB to be 100% sure we have latest data
+      const freshUsers = await getAllUsers();
+      setAllUsers(freshUsers);
       
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      router.push('/');
-    } else {
-      alert('Invalid Email or Password! Please check your credentials.');
+      const user = freshUsers.find(u => 
+        u.email.toLowerCase() === loginData.email.toLowerCase() && 
+        u.password === loginData.password
+      );
+      
+      if (user) {
+        // Update last seen in Global DB
+        await updateLastSeen(user.email);
+        
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        router.push('/');
+      } else {
+        alert('Invalid Email or Password! Please check your credentials.');
+      }
+    } catch (err) {
+      alert('Network error! Please check your internet and try again.');
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
