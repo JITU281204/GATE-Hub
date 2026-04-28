@@ -377,20 +377,7 @@ export default function Dashboard() {
 
   if (!isAuth) return null;
 
-  const resetUserActivity = () => {
-    if (confirm("Are you sure you want to reset your activity? This will clear your personal logs but Admin will still have your records.")) {
-      const allUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-      const userIndex = allUsers.findIndex(u => u.email === currentUser.email);
-      
-      if (userIndex !== -1) {
-        allUsers[userIndex].history = []; // Clear student visible history
-        localStorage.setItem('registeredUsers', JSON.stringify(allUsers));
-        setTestHistory([]);
-        // Update local session
-        localStorage.setItem('currentUser', JSON.stringify(allUsers[userIndex]));
-      }
-    }
-  };
+
 
   const getBadgeStyle = (marks, aTab) => {
     // 100 is always Red signal
@@ -521,7 +508,6 @@ export default function Dashboard() {
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
                   <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
                     <h2 style={{color: 'var(--primary)', fontFamily: 'Outfit', margin: 0}}>Your Activity Tracker</h2>
-                    <button onClick={resetUserActivity} style={{background: '#fff1f2', color: '#ff3d71', border: '1px solid #fee2e2', padding: '5px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer'}}>Reset Your Data</button>
                   </div>
                   <button onClick={() => setShowActivityModal(false)} style={{background: '#f1f5f9', border: 'none', cursor: 'pointer', fontSize: '1.2rem', width: '35px', height: '35px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>×</button>
                 </div>
@@ -641,9 +627,7 @@ export default function Dashboard() {
               </div>
             ))}
             <div className="nav-spacer"></div>
-            <button className="reset-mini-btn" onClick={resetUserActivity} title="Reset Progress">
-               🗑️
-            </button>
+
           </div>
 
           <h1 className="content-header">{activeTab} Series</h1>

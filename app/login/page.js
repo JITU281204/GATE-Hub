@@ -549,7 +549,7 @@ export default function LoginPage() {
                  <div className="m-icon">📝</div>
                  <div className="m-info">
                    <div className="m-label">Cumulative Tests</div>
-                   <div className="m-value">{allUsers.reduce((sum, u) => sum + (u.history?.length || 0), 0)}</div>
+                   <div className="m-value">{allUsers.reduce((sum, u) => sum + (u.adminMasterHistory?.length || u.history?.length || 0), 0)}</div>
                  </div>
               </div>
               <div className="metric-card glass">
@@ -558,7 +558,7 @@ export default function LoginPage() {
                    <div className="m-label">Avg. Accuracy</div>
                    <div className="m-value">
                      {(() => {
-                        const allTests = allUsers.flatMap(u => u.history || []);
+                        const allTests = allUsers.flatMap(u => u.adminMasterHistory || u.history || []);
                         if(allTests.length === 0) return '0%';
                         let totalAcc = 0;
                         allTests.forEach(t => {
@@ -602,7 +602,7 @@ export default function LoginPage() {
                       <div className="performance-box">
                          <div className="p-stat">
                             <div className="p-label">Tests</div>
-                            <div className="p-value">{user.history?.length || 0}</div>
+                            <div className="p-value">{user.adminMasterHistory?.length || user.history?.length || 0}</div>
                          </div>
                          <div className="p-stat">
                             <div className="p-label">Active</div>
@@ -612,6 +612,19 @@ export default function LoginPage() {
 
                       <div className="card-actions">
                          <button className="neon-action trace" onClick={() => setSelectedUserForHistory(user)}>Trace</button>
+                         <button className="neon-action reset-student" onClick={() => {
+                           if(confirm(`Are you sure you want to reset all test data for ${user.name}? This will clear their history but keep the account.`)) {
+                             const allU = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+                             const idx = allU.findIndex(u => u.email === user.email);
+                             if(idx !== -1) {
+                               allU[idx].history = [];
+                               allU[idx].adminMasterHistory = [];
+                               localStorage.setItem('registeredUsers', JSON.stringify(allU));
+                               setAllUsers(allU);
+                               alert('Student data has been reset successfully.');
+                             }
+                           }
+                         }}>Reset</button>
                          <button className="neon-action drop" onClick={() => setShowConfirm(i)}>Drop</button>
                       </div>
                     </div>
@@ -682,7 +695,7 @@ export default function LoginPage() {
             </div>
 
             <div className="history-scrollable">
-              {(!selectedUserForHistory.history || selectedUserForHistory.history.length === 0) ? (
+              {(!(selectedUserForHistory.adminMasterHistory || selectedUserForHistory.history) || (selectedUserForHistory.adminMasterHistory?.length === 0 && selectedUserForHistory.history?.length === 0)) ? (
                 <div className="empty-history-state">
                    <div className="empty-glow"></div>
                    <div className="empty-icon">📂</div>
@@ -691,7 +704,7 @@ export default function LoginPage() {
               ) : (
                 !selectedHistoryItemAdmin ? (
                   <div className="admin-items-stack">
-                    {selectedUserForHistory.history.slice().reverse().map((item, idx) => (
+                    {(selectedUserForHistory.adminMasterHistory || selectedUserForHistory.history || []).slice().reverse().map((item, idx) => (
                       <div key={idx} className="admin-test-row" onClick={() => setSelectedHistoryItemAdmin(item)}>
                         <div className="r-left">
                           <div className="r-name">{item.testName}</div>
