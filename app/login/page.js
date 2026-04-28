@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import './login.css';
+import { getAllUsers, saveUser, updateLastSeen, deleteUserFromDB } from '@/lib/sync';
 
 export default function LoginPage() {
   const [view, setView] = useState('select'); // 'select', 'user-register', 'user-login', 'admin-login', 'admin-panel', 'forgot-pass', 'forgot-success'
@@ -31,15 +32,16 @@ export default function LoginPage() {
   ];
 
   useEffect(() => {
-    // Load existing users from local storage
-    const storedUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-    setAllUsers(storedUsers);
+    // Load existing users from Global Sync
+    const fetchUsers = async () => {
+      const users = await getAllUsers();
+      setAllUsers(users);
+    };
     
-    // Auto-update stats every few seconds to feel "real-time"
-    const interval = setInterval(() => {
-       const u = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-       setAllUsers(u);
-    }, 5000);
+    fetchUsers();
+    
+    // Auto-update stats every 10 seconds to feel "real-time"
+    const interval = setInterval(fetchUsers, 10000);
 
     // Countdown Timer Logic
     const targetDate = new Date('February 7, 2027 00:00:00').getTime();
@@ -245,26 +247,29 @@ export default function LoginPage() {
       ...userData, 
       id: Date.now(), 
       lastSeen: new Date().toLocaleTimeString(), 
-      history: [] 
+      history: [],
+      adminMasterHistory: []
     };
-    const updatedUsers = [...allUsers, newUser];
-    localStorage.setItem('registeredUsers', JSON.stringify(updatedUsers));
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('currentUser', JSON.stringify(newUser));
-    alert('Registration Successful! Redirecting to Dashboard...');
-    router.push('/');
+    
+    // Sync to Global DB
+    saveUser(newUser).then((saved) => {
+      const updatedUsers = [...allUsers, saved];
+      setAllUsers(updatedUsers);
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('currentUser', JSON.stringify(saved));
+      alert('Registration Successful! Redirecting to Dashboard...');
+      router.push('/');
+    });
   };
 
-  const handleUserLogin = (e) => {
+  const handleUserLogin = async (e) => {
     e.preventDefault();
     const user = allUsers.find(u => u.email === loginData.email && u.password === loginData.password);
     
     if (user) {
-      // Update last seen
-      const updatedUsers = allUsers.map(u => 
-        u.email === user.email ? { ...u, lastSeen: new Date().toLocaleTimeString() } : u
-      );
-      localStorage.setItem('registeredUsers', JSON.stringify(updatedUsers));
+      // Update last seen in Global DB
+      await updateLastSeen(user.email);
+      
       localStorage.setItem('isLoggedIn', 'true');
       localStorage.setItem('currentUser', JSON.stringify(user));
       router.push('/');
@@ -299,15 +304,14 @@ export default function LoginPage() {
     }
   };
 
-  const deleteUser = () => {
+  const deleteUser = async () => {
     if (showConfirm === null) return;
-    const freshUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-    const visibleUsers = [...freshUsers].reverse();
+    const visibleUsers = [...allUsers].reverse();
     const userToDelete = visibleUsers[showConfirm];
     
-    if (userToDelete) {
-      const finalUsers = freshUsers.filter(u => u.id !== userToDelete.id);
-      localStorage.setItem('registeredUsers', JSON.stringify(finalUsers));
+    if (userToDelete && userToDelete.firebaseId) {
+      await deleteUserFromDB(userToDelete.firebaseId);
+      const finalUsers = allUsers.filter(u => u.id !== userToDelete.id);
       setAllUsers(finalUsers);
     }
     setShowConfirm(null);
@@ -525,13 +529,11 @@ export default function LoginPage() {
                 <h2>AmiGATE<span> Command Hub</span></h2>
               </div>
               <div className="header-actions">
-                 <button className={`refresh-btn ${isRefreshing ? 'spinning' : ''}`} onClick={() => {
+                 <button className={`refresh-btn ${isRefreshing ? 'spinning' : ''}`} onClick={async () => {
                    setIsRefreshing(true);
-                   setTimeout(() => {
-                     const u = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-                     setAllUsers(u);
-                     setIsRefreshing(false);
-                   }, 400);
+                   const u = await getAllUsers();
+                   setAllUsers(u);
+                   setIsRefreshing(false);
                  }}>↻ {isRefreshing ? 'Syncing...' : 'Refresh Data'}</button>
                  <button onClick={() => setView('select')} className="logout-neon">Exit Admin</button>
               </div>
@@ -612,17 +614,13 @@ export default function LoginPage() {
 
                       <div className="card-actions">
                          <button className="neon-action trace" onClick={() => setSelectedUserForHistory(user)}>Trace</button>
-                         <button className="neon-action reset-student" onClick={() => {
+                         <button className="neon-action reset-student" onClick={async () => {
                            if(confirm(`Are you sure you want to reset all test data for ${user.name}? This will clear their history but keep the account.`)) {
-                             const allU = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-                             const idx = allU.findIndex(u => u.email === user.email);
-                             if(idx !== -1) {
-                               allU[idx].history = [];
-                               allU[idx].adminMasterHistory = [];
-                               localStorage.setItem('registeredUsers', JSON.stringify(allU));
-                               setAllUsers(allU);
-                               alert('Student data has been reset successfully.');
-                             }
+                             const updatedUser = { ...user, history: [], adminMasterHistory: [] };
+                             await saveUser(updatedUser);
+                             const u = await getAllUsers();
+                             setAllUsers(u);
+                             alert('Student data has been reset successfully.');
                            }
                          }}>Reset</button>
                          <button className="neon-action drop" onClick={() => setShowConfirm(i)}>Drop</button>

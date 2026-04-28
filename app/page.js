@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import './dashboard.css';
+import { getAllUsers } from '@/lib/sync';
 
 const MAIN_TABS = [
   { id: 'Go 25 weekly quiz', badge: 'GO25' },
@@ -364,14 +365,15 @@ export default function Dashboard() {
       setCurrentUser(user);
       setIsAuth(true);
       
-      // Load individual history from the persistent user record
-      const allUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-      const dbUser = allUsers.find(u => u.email === user.email);
-      if (dbUser && dbUser.history) {
-        setTestHistory(dbUser.history);
-      } else {
-        setTestHistory([]);
-      }
+      // Load individual history from Global DB
+      getAllUsers().then(allUsers => {
+        const dbUser = allUsers.find(u => u.email === user.email);
+        if (dbUser && dbUser.history) {
+          setTestHistory(dbUser.history);
+        } else {
+          setTestHistory([]);
+        }
+      });
     }
   }, [router]);
 

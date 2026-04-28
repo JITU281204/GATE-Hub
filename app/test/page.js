@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import './test.css';
 import { QUIZZES } from './data';
+import { saveUser, getAllUsers } from '@/lib/sync';
 
 export default function TestInterface() {
   const [currentQuizId, setCurrentQuizId] = useState(null);
@@ -214,22 +215,27 @@ export default function TestInterface() {
     // Save to global history (for Admin & Persistence)
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
     if (currentUser.email) {
-      const allUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-      const userIndex = allUsers.findIndex(u => u.email === currentUser.email);
-      if (userIndex !== -1) {
-        // Master History (Permanent for Admin)
-        if (!allUsers[userIndex].adminMasterHistory) allUsers[userIndex].adminMasterHistory = [];
-        allUsers[userIndex].adminMasterHistory.push(testSummary);
-        
-        // Active History (Visible to Student, they can reset this)
-        if (!allUsers[userIndex].history) allUsers[userIndex].history = [];
-        allUsers[userIndex].history.push(testSummary);
-        
-        localStorage.setItem('registeredUsers', JSON.stringify(allUsers));
-        
-        // Update Session for immediate feedback
-        localStorage.setItem('currentUser', JSON.stringify(allUsers[userIndex]));
-      }
+      // Fetch latest users from DB to ensure we don't overwrite others' data
+      getAllUsers().then(allUsers => {
+        const userIndex = allUsers.findIndex(u => u.email === currentUser.email);
+        if (userIndex !== -1) {
+          const targetUser = allUsers[userIndex];
+          
+          // Master History (Permanent for Admin)
+          if (!targetUser.adminMasterHistory) targetUser.adminMasterHistory = [];
+          targetUser.adminMasterHistory.push(testSummary);
+          
+          // Active History (Visible to Student)
+          if (!targetUser.history) targetUser.history = [];
+          targetUser.history.push(testSummary);
+          
+          // Sync back to Global DB
+          saveUser(targetUser).then(() => {
+             // Also update local copy for the session
+             localStorage.setItem('currentUser', JSON.stringify(targetUser));
+          });
+        }
+      });
     }
 
     // Save to local device history (for user dashboard)
