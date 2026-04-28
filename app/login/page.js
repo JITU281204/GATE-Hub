@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import './login.css';
-import { getAllUsers, saveUser, updateLastSeen, deleteUserFromDB } from '@/lib/sync';
+import { getAllUsers, saveUser, updateLastSeen, deleteUserFromDB } from '../../lib/sync';
 
 export default function LoginPage() {
   const [view, setView] = useState('select'); // 'select', 'user-register', 'user-login', 'admin-login', 'admin-panel', 'forgot-pass', 'forgot-success'

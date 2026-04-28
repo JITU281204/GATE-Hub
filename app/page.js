@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import './dashboard.css';
-import { getAllUsers } from '@/lib/sync';
+import { getAllUsers } from '../lib/sync';
 
 const MAIN_TABS = [
   { id: 'Go 25 weekly quiz', badge: 'GO25' },

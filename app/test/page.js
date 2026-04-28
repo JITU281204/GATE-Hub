@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import './test.css';
 import { QUIZZES } from './data';
-import { saveUser, getAllUsers } from '@/lib/sync';
+import { saveUser, getAllUsers } from '../../lib/sync';
 
 export default function TestInterface() {
   const [currentQuizId, setCurrentQuizId] = useState(null);
