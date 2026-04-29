@@ -791,10 +791,178 @@ export const GO_2026_2_QUESTIONS = [
   }
 ];
 
+export const GO_2026_3_QUESTIONS = [
+  {
+    id: 1, type: 'MCQ', marks: { positive: 1, negative: 0.33 },
+    category: 'Set Operations',
+    question: "If <em>A = {x, y, z}</em> and <em>B = {u, v, w, x}</em>, and the universe is <em>{s, t, u, v, w, x, y, z}</em>. Then <em>(A ∪ B̅) ∩ (A ∩ B)</em> is equal to",
+    options: [
+      "{u, v, w, x}",
+      "{x}",
+      "{u, v, w, x, y, z}",
+      "{u, v, w}"
+    ],
+    correctAnswer: [1]
+  },
+  {
+    id: 2, type: 'MCQ', marks: { positive: 1, negative: 0.33 },
+    category: 'Power Sets',
+    question: "What is the Cardinality of the Power set of the set <em>{0, 1, 2}</em>?",
+    options: ["8", "6", "7", "9"],
+    correctAnswer: [0]
+  },
+  {
+    id: 3, type: 'MCQ', marks: { positive: 2, negative: 0.67 },
+    category: 'Power Sets',
+    question: "Power set of empty set has exactly _______ subsets.",
+    options: ["One", "Two", "Zero", "Three"],
+    correctAnswer: [1]
+  },
+  {
+    id: 4, type: 'MSQ', marks: { positive: 2, negative: 0 },
+    category: 'Power Sets',
+    question: "Which of the following is/are true?",
+    options: [
+      "If <em>S</em> is a set and <em>|S| = 103</em>, then <em>S</em> is not the power set of any set (that is, there is no set <em>T</em> where <em>S = P(T)</em>).",
+      "If <em>S</em> is a set and <em>|S| = 103</em>, then <em>S</em> is a power set of some set (that is, there is some set <em>T</em> where <em>S = P(T)</em>).",
+      "If <em>S</em> is a set and <em>|S| = 8</em>, then <em>S</em> is a power set of some set (that is, there is some set <em>T</em> where <em>S = P(T)</em>).",
+      "If <em>S</em> is a set and <em>|S| = 8</em>, then <em>S</em> is not the power set of any set (that is, there is no set <em>T</em> where <em>S = P(T)</em>)."
+    ],
+    correctAnswer: [0, 2]
+  },
+  {
+    id: 5, type: 'MCQ', marks: { positive: 1, negative: 0.33 },
+    category: 'Set Identities',
+    question: "Let <em>A, B</em> be two sets. Let <em>A̅</em> denote the complement of set <em>A</em> (with respect to some fixed universe), and <em>(A - B)</em> denote the set of elements in <em>A</em> which are not in <em>B</em>. Set <em>(A - (A - B))</em> is equal to:",
+    options: ["<em>B</em>", "<em>A ∩ B̅</em>", "<em>A - B</em>", "<em>A ∩ B</em>"],
+    correctAnswer: [3]
+  },
+  {
+    id: 6, type: 'MCQ', marks: { positive: 2, negative: 0.67 },
+    category: 'Finite and Infinite Sets',
+    question: "Let <em>S</em> be an infinite set and <em>S<sub>1</sub>, ..., S<sub>n</sub></em> be sets such that <em>S<sub>1</sub> ∪ S<sub>2</sub> ∪ ... ∪ S<sub>n</sub> = S</em>. Then",
+    options: [
+      "at least one of the sets <em>S<sub>i</sub></em> is a finite set",
+      "not more than one of the sets <em>S<sub>i</sub></em> can be finite",
+      "at least one of the sets <em>S<sub>i</sub></em> is an infinite",
+      "None of the above"
+    ],
+    correctAnswer: [2]
+  },
+  {
+    id: 7, type: 'MSQ', marks: { positive: 2, negative: 0 },
+    category: 'Set Theory Statements',
+    question: "Which of the following statements is/are <strong>False</strong>?",
+    options: [
+      "<em>{2, 3, 4} ∈ A</em> and <em>{2, 3} ∈ B</em> implies that <em>{4} ⊆ A - B</em>.",
+      "<em>A ∩ B ⊇ {2, 3, 4}</em> implies that <em>{2, 3, 4} ⊆ A</em> and <em>{2, 3, 4} ⊆ B</em>.",
+      "<em>A - B ⊇ {3, 4}</em> and <em>{1, 2} ⊆ B</em> implies that <em>{1, 2, 3, 4} ⊆ A ∪ B</em>.",
+      "<em>{2, 3} ⊆ A ∪ B</em> implies that if <em>{2, 3} ∩ A = ∅</em> then <em>{2, 3} ⊆ B</em>."
+    ],
+    correctAnswer: [0]
+  },
+  {
+    id: 8, type: 'MCQ', marks: { positive: 1, negative: 0.33 },
+    category: 'Symmetric Difference',
+    question: "The symmetric difference of sets <em>A = {1, 2, 3, 4, 5, 6, 7, 8}</em> and <em>B = {1, 3, 5, 6, 7, 8, 9}</em> is:",
+    options: [
+      "{1, 3, 5, 6, 7, 8}",
+      "{2, 4, 9}",
+      "{2, 4}",
+      "{1, 2, 3, 4, 5, 6, 7, 8, 9}"
+    ],
+    correctAnswer: [1]
+  },
+  {
+    id: 9, type: 'MSQ', marks: { positive: 2, negative: 0 },
+    category: 'Set Theory Statements',
+    question: "Which of the following statements is/are <strong>TRUE</strong>?",
+    options: [
+      "<em>2 ∈ A ∪ B</em> implies that if <em>2 ∉ A</em> then <em>2 ∈ B</em>.",
+      "<em>{2, 3} ⊆ A</em> implies that <em>2 ∈ A</em> and <em>3 ∈ A</em>.",
+      "<em>A ∩ B ⊇ {2, 3}</em> implies that <em>{2, 3} ⊆ A</em> and <em>{2, 3} ⊆ B</em>.",
+      "<em>A - B ⊇ {3}</em> and <em>{2} ⊆ B</em> implies that <em>{2, 3} ⊆ A ∪ B</em>."
+    ],
+    correctAnswer: [0, 1, 2, 3]
+  },
+  {
+    id: 10, type: 'MCQ', marks: { positive: 1, negative: 0.33 },
+    category: 'Power Sets',
+    question: "The power set of the set <em>{∅}</em> is",
+    options: [
+      "{∅}",
+      "{∅, {∅}}",
+      "{0}",
+      "{0, ∅, {∅}}"
+    ],
+    correctAnswer: [1]
+  }
+];
+
+export const QUIZ_4_QUESTIONS = [
+  {
+    id: 1, type: 'MSQ', marks: { positive: 2, negative: 0 },
+    category: 'Logic & Quantifiers',
+    question: "For the following statements, the universe comprises all nonzero integers. Determine the truth value of each statement. Which of the following statements is/are false?",
+    options: [
+      "∀x∃y[xy = 1]",
+      "∃x∃y[(3x - y = 7) ∧ (2x + 4y = 3)]",
+      "∀y∃x[xy = 1]",
+      "∃x∃y[(2x + y = 5) ∧ (x - 3y = -8)]"
+    ],
+    correctAnswer: [0, 1, 2]
+  },
+  {
+    id: 2, type: 'MCQ', marks: { positive: 2, negative: 0.67 },
+    category: 'First Order Logic',
+    question: "What is the truth of the wff (∃x) (A(x) ∧ (∀y)[B(x, y) → C(y)]), where A(x) is \" x > 0 \", B(x, y) is \" x > y \", C(y) is \" y ≤ 0 \", and x is the domain of positive integers and y is the domain of all integers?",
+    options: ["True", "False", "Not a proposition, because there is a free variable in the given wff.", "Not a proposition, because every variable is a bounded variable in the given wff."],
+    correctAnswer: [0]
+  },
+  {
+    id: 3, type: 'MSQ', marks: { positive: 1, negative: 0 },
+    category: 'Logic Translation',
+    question: "Predicates:<br/>• C(x) : x is a CSE 260 student<br/>• L(x) : x loves music<br/>The universe of discourse for the variable x is all students.<br/>Which Translation of the following statements into logical expressions using predicates, quantifiers, and logical connectives is correct?",
+    options: [
+      "Every student loves music ∀xL(x)",
+      "No student loves music ∀x¬L(x)",
+      "Some students love music ∃xL(x)",
+      "Every CSE 260 student loves music. ∀x(C(x) → L(x))"
+    ],
+    correctAnswer: [0, 1, 2, 3]
+  },
+  {
+    id: 4, type: 'MSQ', marks: { positive: 2, negative: 0 },
+    category: 'Quantifier Identities',
+    question: "Which of the following is/are true?",
+    options: [
+      "[∀x ∈ D, (P(x) ⇔ Q(x))] → [(∀x ∈ D, P(x)) ⇔ (∀x ∈ D, Q(x))]",
+      "[∃x ∈ D, (P(x) ⇔ Q(x))] → [(∃x ∈ D, P(x)) ⇔ (∃x ∈ D, Q(x))]",
+      "[∀x ∈ D, (P(x) ⇔ Q(x))] ← [(∀x ∈ D, P(x)) ⇔ (∀x ∈ D, Q(x))]",
+      "[∃x ∈ D, (P(x) ⇔ Q(x))] ← [(∃x ∈ D, P(x)) ⇔ (∃x ∈ D, Q(x))]"
+    ],
+    correctAnswer: [0]
+  },
+  {
+    id: 5, type: 'MSQ', marks: { positive: 1, negative: 0 },
+    category: 'Logic Expressions',
+    question: "Let p(x, y), q(x, y) denote the following open statements.<br/>p(x, y) : x² ≥ y, q(x, y) : x + 2 < y<br/>If the universe for each of x, y consists of all real numbers, Which of the following statements is/are false?",
+    options: [
+      "p(-3, 8) ∧ q(1, 3)",
+      "p(1/2, 1/3) ∨ ¬q(-2, -3)",
+      "p(2, 2) → q(1, 1)",
+      "p(1, 2) ⇔ ¬q(1, 2)"
+    ],
+    correctAnswer: [0, 2, 3]
+  }
+];
+
 export const QUIZZES = {
   "1": QUIZ_1_QUESTIONS,
   "2": QUIZ_2_QUESTIONS,
   "3": QUIZ_3_QUESTIONS,
+  "4": QUIZ_4_QUESTIONS,
   "go-1": GO_1_QUESTIONS,
-  "2026-2": GO_2026_2_QUESTIONS
+  "2026-2": GO_2026_2_QUESTIONS,
+  "2026-3": GO_2026_3_QUESTIONS
 };

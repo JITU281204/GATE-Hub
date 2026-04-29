@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import './login.css';
-import { getAllUsers, saveUser, updateLastSeen, deleteUserFromDB } from '../../lib/sync';
+import { getAllUsers, saveUser, updateLastSeen, deleteUserFromDB, updatePresence, getPresenceCount, getTotalLearners } from '../../lib/sync';
 
 export default function LoginPage() {
   const [view, setView] = useState('select'); // 'select', 'user-register', 'user-login', 'admin-login', 'admin-panel', 'forgot-pass', 'forgot-success'
@@ -18,6 +18,10 @@ export default function LoginPage() {
   const [timeLeft, setTimeLeft] = useState({ months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [activeToast, setActiveToast] = useState(0);
   const [toastVisible, setToastVisible] = useState(false);
+  const [liveLearners, setLiveLearners] = useState(0);
+  const [totalLearners, setTotalLearners] = useState(0);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboard, setLeaderboard] = useState([]);
   const router = useRouter();
 
   const iitList = [
@@ -208,10 +212,63 @@ export default function LoginPage() {
         window.removeEventListener('mouseout', handleMouseOut);
       };
     }
+  }, []);
+
+    // Stats & Presence Polling for Landing Page
+  useEffect(() => {
+    // 1. Initial Fetch
+    getPresenceCount().then(setLiveLearners);
+    getTotalLearners().then(setTotalLearners);
+
+    // 2. Visitor ID for anonymous tracking
+    let visitorId = sessionStorage.getItem('visitorId');
+    if (!visitorId) {
+      visitorId = 'visitor_' + Math.random().toString(36).substr(2, 9);
+      sessionStorage.setItem('visitorId', visitorId);
+    }
+
+    // 3. Presence Heartbeat (Every 5s for ultra-live feel)
+    updatePresence(visitorId, "Visitor");
+    const heartbeat = setInterval(() => {
+      updatePresence(visitorId, "Visitor");
+    }, 5000);
+
+    // 4. Stats Polling (Every 10s for faster feel)
+    const statsInterval = setInterval(async () => {
+      const live = await getPresenceCount();
+      const total = await getTotalLearners();
+      setLiveLearners(live);
+      setTotalLearners(total);
+    }, 10000);
+
+    // 5. Leaderboard Calculation
+    const updateLeaderboard = async () => {
+      const users = await getAllUsers();
+      const leaderData = users.map(u => {
+        const history = u.adminMasterHistory || u.history || [];
+        const totalScore = history.reduce((sum, item) => sum + parseFloat(item.score || 0), 0);
+        const totalTimeSec = history.reduce((sum, item) => {
+          const qCount = item.detailedHistory?.length || 0;
+          const avg = parseFloat(item.avgTime || 0);
+          return sum + (avg * qCount);
+        }, 0);
+        
+        return {
+          id: u.id,
+          name: u.name,
+          testCount: history.length,
+          totalScore: totalScore.toFixed(1),
+          totalTime: Math.floor(totalTimeSec / 60)
+        };
+      });
+      leaderData.sort((a, b) => b.totalScore - a.totalScore);
+      setLeaderboard(leaderData);
+    };
+    updateLeaderboard();
 
     return () => {
-      clearInterval(interval);
-      clearInterval(timerInterval);
+      clearInterval(statsInterval);
+      clearInterval(heartbeat);
     };
   }, []);
 
@@ -341,6 +398,33 @@ export default function LoginPage() {
   return (
     <div className="login-wrapper">
       <canvas id="particle-canvas" className="particle-canvas"></canvas>
+
+      {/* TOP STATS BAR */}
+      <div className="top-stats-bar animate-in">
+        <div className="top-stats-inner">
+          <div className="landing-stat-card stat-live">
+            <div className="ls-top">
+              <div className="ls-indicator"></div>
+              <span className="ls-val">{liveLearners}</span>
+            </div>
+            <span className="ls-label">LIVE</span>
+          </div>
+
+          <div className="landing-stat-card stat-total">
+            <div className="ls-top">
+              <div className="ls-icon">👥</div>
+              <span className="ls-val">{totalLearners.toLocaleString()}</span>
+            </div>
+            <span className="ls-label">LEARNERS</span>
+          </div>
+
+          <button className="ls-leaderboard-btn" onClick={() => setShowLeaderboard(true)}>
+            <span className="ls-btn-icon">🏆</span>
+            <span className="ls-btn-text">Hall of Fame</span>
+          </button>
+        </div>
+      </div>
+
       <div className="top-glow-bar"></div>
       
       <div className="page-center-container">
@@ -408,6 +492,7 @@ export default function LoginPage() {
             </div>
             <h1 className="brand-h1">Welcome to <span>AmiGATE</span></h1>
             <p className="sub-text">Build your future with best-in-class GATE analytics</p>
+
             <div className="btn-stack main-btns">
               <button className="glowing-btn reg-btn" onClick={() => setView('user-register')}>
                 <span className="btn-icon">✨</span>
@@ -1427,6 +1512,57 @@ export default function LoginPage() {
           border-top: 1px solid rgba(255,140,0,0.1);
         }
       `}</style>
+      {/* LEADERBOARD MODAL (Landing Page Version) */}
+      {showLeaderboard && (
+        <div className="popup-overlay" onClick={() => setShowLeaderboard(false)} style={{zIndex: 9999999, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+          <div className="history-modal leaderboard-modal animate-in" 
+               style={{maxWidth: '900px', width: '95%', background: '#0f172a', border: '1px solid rgba(255, 215, 0, 0.3)', padding: '35px', borderRadius: '24px'}} 
+               onClick={e => e.stopPropagation()}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px'}}>
+               <h2 style={{color: '#FFD700', fontFamily: 'Outfit', margin: 0, fontSize: '2rem'}}>🔥 Global Hall of Fame</h2>
+               <button onClick={() => setShowLeaderboard(false)} className="close-x" style={{background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none', borderRadius: '50%', width: '35px', height: '35px', cursor: 'pointer', fontSize: '1.2rem'}}>×</button>
+            </div>
+
+            <div className="leaderboard-table-container">
+               <div className="leader-header-row">
+                  <div>RANK</div>
+                  <div>STUDENT</div>
+                  <div>TESTS</div>
+                  <div>TOTAL SCORE</div>
+                  <div>TIME (MIN)</div>
+               </div>
+
+               <div className="leader-body">
+                  {leaderboard.length === 0 ? (
+                    <div style={{padding: '40px', textAlign: 'center', color: '#94a3b8'}}>No warriors on the battlefield yet...</div>
+                  ) : (
+                    leaderboard.map((player, idx) => (
+                      <div key={player.id} className="leader-row">
+                         <div className="rank-col">
+                            {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
+                         </div>
+                         <div className="name-col">
+                            <div className="p-avatar">{player.name[0]}</div>
+                            <div className="p-info">
+                               <div className="p-name">{player.name}</div>
+                               <div className="p-id">UID: {String(player.id).slice(-6)}</div>
+                            </div>
+                         </div>
+                         <div className="val-col">{player.testCount}</div>
+                         <div className="val-col highlight">{player.totalScore}</div>
+                         <div className="val-col">{player.totalTime}</div>
+                      </div>
+                    ))
+                  )}
+               </div>
+            </div>
+
+            <div style={{marginTop: '25px', textAlign: 'center', color: '#64748b', fontSize: '0.85rem'}}>
+               Leaderboard updates in real-time as students complete their tests.
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import './dashboard.css';
-import { getAllUsers } from '../lib/sync';
+import { getAllUsers, updatePresence } from '../lib/sync';
 
 const MAIN_TABS = [
   { id: 'Go 25 weekly quiz', badge: 'GO25' },
@@ -352,8 +352,6 @@ export default function Dashboard() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [testHistory, setTestHistory] = useState([]);
-  const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
-  const [leaderboard, setLeaderboard] = useState([]);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const router = useRouter();
 
@@ -403,6 +401,20 @@ export default function Dashboard() {
     }
   }, [router]);
 
+  // Real-time Presence Heartbeat for Dashboard
+  useEffect(() => {
+    if (!isAuth || !currentUser.email) return;
+
+    // Use email as unique presence ID
+    updatePresence(currentUser.email, currentUser.name, currentUser.email);
+    
+    const heartbeat = setInterval(() => {
+      updatePresence(currentUser.email, currentUser.name, currentUser.email);
+    }, 5000);
+
+    return () => clearInterval(heartbeat);
+  }, [isAuth, currentUser]);
+
   if (!isAuth) return null;
 
 
@@ -448,7 +460,7 @@ export default function Dashboard() {
     <>
       <header className="header" style={{ position: 'sticky', top: 0 }}>
         <div className="header-title" style={{ display: 'flex', alignItems: 'center', fontSize: '1.6rem', fontWeight: 900, letterSpacing: '-0.5px' }}>
-          <span style={{ color: '#000000' }}>GATE</span>
+          <span style={{ color: '#ffffff' }}>GATE</span>
           <span style={{ 
             backgroundColor: '#FF9900', 
             color: '#000000', 
@@ -490,8 +502,8 @@ export default function Dashboard() {
           </button>
           <div className="profile-section" onClick={() => setShowProfileMenu(!showProfileMenu)}>
             <div style={{textAlign: 'right'}}>
-              <div style={{fontWeight: 700, color: 'var(--text-dark)', fontSize: '0.95rem'}}>{userName}</div>
-              <div style={{fontSize: '0.75rem', color: '#687b9e'}}>Standard Plan</div>
+              <div style={{fontWeight: 700, color: '#f8fafc', fontSize: '0.95rem'}}>{userName}</div>
+              <div style={{fontSize: '0.75rem', color: '#94a3b8'}}>Standard Plan</div>
             </div>
             <div className="avatar">{userName.charAt(0).toUpperCase()}</div>
             
