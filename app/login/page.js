@@ -272,57 +272,78 @@ export default function LoginPage() {
     };
   }, []);
 
-  const handleUserRegister = (e) => {
+  const handleUserRegister = async (e) => {
     e.preventDefault();
-    const phoneRegex = /^[6-9]\d{9}$/;
-    const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    setIsRefreshing(true);
 
-    if (!userData.name || userData.name.trim().length === 0) {
-      alert('Please enter your full name');
-      return;
+    try {
+      const phoneRegex = /^[6-9]\d{9}$/;
+      const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+
+      // 1. Basic Format Checks
+      if (!userData.name || userData.name.trim().length < 3) {
+        alert('Please enter your full official name.');
+        return;
+      }
+
+      if (!phoneRegex.test(userData.mobile)) {
+        alert('Invalid Mobile: Must be a 10-digit number starting with 6-9.');
+        return;
+      }
+
+      // 2. Dummy Number Detection (repeating digits like 9999999999)
+      if (/^(\d)\1{9}$/.test(userData.mobile) || userData.mobile === '1234567890') {
+        alert('Security Check: Please use a valid, non-dummy mobile number.');
+        return;
+      }
+
+      if (!gmailRegex.test(userData.email)) {
+        alert('Security Policy: Only official @gmail.com accounts are permitted.');
+        return;
+      }
+
+      if (userData.password.length < 6) {
+        alert('Security Requirement: Password must be at least 6 characters.');
+        return;
+      }
+
+      // 3. Real-time Database Verification
+      const freshUsers = await getAllUsers();
+      
+      // Check for duplicate Email
+      if (freshUsers.some(u => u.email.toLowerCase() === userData.email.toLowerCase())) {
+        alert('Security Alert: This Email is already registered. Please Login.');
+        setView('user-login');
+        return;
+      }
+
+      // Check for duplicate Mobile
+      if (freshUsers.some(u => u.mobile === userData.mobile)) {
+        alert('Security Alert: This Mobile Number is already linked to an account.');
+        return;
+      }
+
+      const newUser = { 
+        ...userData, 
+        id: Date.now(), 
+        lastSeen: new Date().toLocaleTimeString(), 
+        history: [],
+        adminMasterHistory: []
+      };
+      
+      // Sync to Global DB
+      await saveUser(newUser);
+      
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('currentUser', JSON.stringify(newUser));
+      
+      alert('Verification Successful! Welcome to AmiGATE.');
+      router.push('/');
+    } catch (err) {
+      alert('Security Handshake Failed: Please check your connection and try again.');
+    } finally {
+      setIsRefreshing(false);
     }
-
-    if (!phoneRegex.test(userData.mobile)) {
-      alert('Please put a valid 10-digit mobile number');
-      return;
-    }
-
-    if (!gmailRegex.test(userData.email)) {
-      alert('Please use a valid @gmail.com address');
-      return;
-    }
-
-    if (userData.password.length < 6) {
-      alert('Password must be at least 6 characters');
-      return;
-    }
-
-    // Check if user already exists
-    if (allUsers.some(u => u.email === userData.email)) {
-      alert('User with this email already exists! Please Login.');
-      setView('user-login');
-      return;
-    }
-
-    const newUser = { 
-      ...userData, 
-      id: Date.now(), 
-      lastSeen: new Date().toLocaleTimeString(), 
-      history: [],
-      adminMasterHistory: []
-    };
-    
-    // Save locally first
-    const updatedLocal = [...allUsers, newUser];
-    setAllUsers(updatedLocal);
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('currentUser', JSON.stringify(newUser));
-    
-    // Sync to Global DB in background
-    saveUser(newUser).catch(err => console.error("Sync failed:", err));
-    
-    alert('Registration Successful! Redirecting to Dashboard...');
-    router.push('/');
   };
 
   const handleUserLogin = async (e) => {

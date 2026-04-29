@@ -352,7 +352,9 @@ export default function Dashboard() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [testHistory, setTestHistory] = useState([]);
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboard, setLeaderboard] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -368,7 +370,7 @@ export default function Dashboard() {
       // Load individual history and leaderboard from Global DB
       getAllUsers().then(allUsers => {
         // Individual history
-        const dbUser = allUsers.find(u => u.email === user.email);
+        const dbUser = allUsers.find(u => u.email?.toLowerCase() === user.email?.toLowerCase());
         if (dbUser && dbUser.history) {
           setTestHistory(dbUser.history);
         } else {
@@ -386,8 +388,8 @@ export default function Dashboard() {
            }, 0);
            
            return {
-              id: u.id,
-              name: u.name,
+              id: u.id || Math.random(),
+              name: u.name || "AmiGATE Warrior",
               testCount: history.length,
               totalScore: totalScore.toFixed(1),
               totalTime: Math.floor(totalTimeSec / 60) // in minutes
